@@ -40,19 +40,26 @@
     const selectFx = document.querySelector("#test-select-fx").innerHTML;
     const selectCh = document.querySelector("#test-select-ch").innerHTML;
 
-    if (math.includes("<b>") && !math.includes("</math><b>")) {
-      return "Brave";
-    }
-    if (!selectFx.includes("<a>") && selectFx.includes("aaabbbccc")) {
+    const isBrave = math.includes("<b>") && !math.includes("</math><b>");
+    const isFirefox = !selectFx.includes("<a>") && selectFx.includes("aaabbbccc");
+    const isChromeSignature = selectCh.includes("<keygen>") && !selectCh.includes("</keygen>");
+    const sandbox = navigator.deprecatedRunAdAuctionEnforcesKAnonymity;
+
+    if (isBrave) return "Brave";
+
+    if (isFirefox) {
+      // Special case: Firefox-like behavior but sandbox API exists and is false → likely Edge
+      if (sandbox === false) return "Edge"; // navigator.deprecatedRunAdAuctionEnforcesKAnonymity is true on Chrome, not edge, on firefox undefined.
       return "Firefox";
     }
-    if (selectCh.includes("<keygen>") && !selectCh.includes("</keygen>")) {
-      // Check Privacy Sandbox behavior to distinguish Chrome vs Edge
-      if (typeof navigator.deprecatedRunAdAuctionEnforcesKAnonymity === "boolean") {
-        return navigator.deprecatedRunAdAuctionEnforcesKAnonymity ? "Chrome" : "Edge";
+
+    if (isChromeSignature) {
+      if (typeof sandbox === "boolean") {
+        return sandbox ? "Chrome" : "Edge"; // navigator.deprecatedRunAdAuctionEnforcesKAnonymity is true on Chrome, not edge, on firefox undefined.
       }
-      return "Chrome"; // default fallback
+      return "Chrome"; // fallback
     }
+
     return "Unknown";
   }
 
