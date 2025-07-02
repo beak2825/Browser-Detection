@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!-- saved from url=(0057)file:///C:/Users/anna0/Downloads/Browser%20Detection.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>Browser Detection</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+    }
+    p {
+      font-size: 1rem;
+      color: gray;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="browser-name">Detecting...</h1>
+  <p id="window-name-status">Detecting...</p><p id="222">Try changing your User Agent, it knows either way.</p><p></p>
+
+  <!-- Sanitization tests, auto-parsed by browser's parser -->
+  <div style="display:none;">
+    <!-- Brave breaks <math> inner structure -->
+    <div id="test-math"><math>aaa</math><b>bbb</b>ccc</div>
+    <!-- Firefox discards <a> inside <select> -->
+    <div id="test-select-fx"><select>aaa<a>bbb</a>ccc</select></div>
+    <!-- Chrome keeps <keygen> inside <select> -->
+    <div id="test-select-ch"><select>aaa<keygen>bbbccc</select></div>
+  </div>
+
+  <script>
+    function detectBrowserBySanitization() {
+      const math = document.querySelector("#test-math").innerHTML;
+      const selectFx = document.querySelector("#test-select-fx").innerHTML;
+      const selectCh = document.querySelector("#test-select-ch").innerHTML;
+
+      if (math.includes("<b>") && !math.includes("</math><b>")) {
+        return "Brave";
+      }
+      if (!selectFx.includes("<a>") && selectFx.includes("aaabbbccc")) {
+        return "Firefox";
+      }
+      if (selectCh.includes("<keygen>") && !selectCh.includes("</keygen>")) {
+        return "Chrome";
+      }
+      return "Unknown";
+    }
+
+    function testWindowNamePersistence(callback) {
+      const KEY = "__window_name_test__";
+      if (window.name === KEY) {
+        callback(true);
+        window.name = ""; // Clean up
+      } else {
+        window.name = KEY;
+        location.reload();
+      }
+    }
+
+    const browser = detectBrowserBySanitization();
+    document.getElementById("browser-name").textContent = `You are using ${browser}`;
+
+    testWindowNamePersistence((persistent) => {
+      const status = persistent
+        ? "Your browser is vulnerable to window.name persistence."
+        : "Your browser is not vulnerable to window.name persistence.";
+      document.getElementById("window-name-status").textContent = status;
+    });
+  </script>
+
+
+</body></html>
