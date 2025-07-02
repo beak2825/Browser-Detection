@@ -1,0 +1,84 @@
+const htmlTags = [
+  "a", "abbr", "acronym", "address", "applet", "area", "article", "aside", "audio",
+  "b", "base", "basefont", "bdi", "bdo", "bgsound", "big", "blink", "blockquote", "body", "br", "button",
+  "canvas", "caption", "center", "cite", "code", "col", "colgroup", "comment", "content",
+  "data", "datalist", "dd", "del", "details", "dfn", "dialog", "dir", "div", "dl", "dt",
+  "em", "embed",
+  "fieldset", "figcaption", "figure", "font", "footer", "form", "frame", "frameset",
+  "h1", "h2", "h3", "h4", "h5", "h6", "head", "header", "hr", "html",
+  "i", "iframe", "ilayer", "img", "image", "input", "ins", "isindex",
+  "kbd", "keygen", "label", "layer", "legend", "li", "link", "listing", "main", "map", "mark", "marquee", "math", "menu", "menuitem", "meta", "meter",
+  "nav", "nobr", "noembed", "noframes", "noscript",
+  "object", "ol", "optgroup", "option", "output",
+  "p", "param", "picture", "plaintext", "pre", "progress",
+  "q",
+  "rb", "rp", "rt", "rtc", "ruby",
+  "s", "samp", "script", "section", "select", "shadow", "slot", "small", "source", "spacer", "span", "strike", "strong", "style", "sub", "summary", "sup", "svg",
+  "table", "tbody", "td", "template", "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "tt",
+  "u", "ul",
+  "var", "video", "vmlframe",
+  "wbr",
+  "xmp", "xml", "annotation-xml", "desc", "foreignobject"
+];
+
+const sortedTags = [...htmlTags].sort();
+
+function testTagInteractions() {
+  const iframe = document.createElement("iframe");
+  iframe.style.display = "none";
+  document.body.appendChild(iframe);
+
+  const frameDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+  // Array to store mismatch results
+  const mismatches = [];
+
+  for (let i = 0; i < sortedTags.length; i++) {
+    for (let j = 0; j < sortedTags.length; j++) {
+      const tag1 = sortedTags[i];
+      const tag2 = sortedTags[j];
+
+      const testHTML = `<${tag1}>aaa<${tag2}>bbb</${tag2}>ccc</${tag1}>`;
+      frameDoc.body.innerHTML = testHTML;
+
+      const rendered = frameDoc.body.innerHTML;
+
+      if (rendered !== testHTML) {
+        console.log(
+          `${tag1} + ${tag2}\n` +
+          `JSAPIHTML:\n${testHTML}\n` +
+          `SANITIZED:\n${rendered}\n`
+        );
+        mismatches.push({
+          tag1,
+          tag2,
+          jsapihtml: testHTML,
+          sanitized: rendered,
+        });
+      }
+    }
+  }
+
+  document.body.removeChild(iframe);
+
+  if (mismatches.length) {
+    // Prepare JSON string with pretty formatting
+    const jsonString = JSON.stringify(mismatches, null, 2);
+    // Create blob
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    // Create temporary anchor to download file
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tag_sanitization_results.json";
+    document.body.appendChild(a);
+    a.click();
+    // Cleanup
+    a.remove();
+    URL.revokeObjectURL(url);
+  } else {
+    console.log("No mismatches found.");
+  }
+}
+
+testTagInteractions();
