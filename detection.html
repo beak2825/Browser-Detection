@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<!-- saved from url=(0057)file:///C:/Users/anna0/Downloads/Browser%20Detection.html -->
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <title>Browser Detection</title>
@@ -36,45 +34,49 @@
     <div id="test-select-ch"><select>aaa<keygen>bbbccc</select></div>
   </div>
 
-  <script>
-    function detectBrowserBySanitization() {
-      const math = document.querySelector("#test-math").innerHTML;
-      const selectFx = document.querySelector("#test-select-fx").innerHTML;
-      const selectCh = document.querySelector("#test-select-ch").innerHTML;
+<script>
+  function detectBrowserBySanitization() {
+    const math = document.querySelector("#test-math").innerHTML;
+    const selectFx = document.querySelector("#test-select-fx").innerHTML;
+    const selectCh = document.querySelector("#test-select-ch").innerHTML;
 
-      if (math.includes("<b>") && !math.includes("</math><b>")) {
-        return "Brave";
-      }
-      if (!selectFx.includes("<a>") && selectFx.includes("aaabbbccc")) {
-        return "Firefox";
-      }
-      if (selectCh.includes("<keygen>") && !selectCh.includes("</keygen>")) {
-        return "Chrome";
-      }
-      return "Unknown";
+    if (math.includes("<b>") && !math.includes("</math><b>")) {
+      return "Brave";
     }
-
-    function testWindowNamePersistence(callback) {
-      const KEY = "__window_name_test__";
-      if (window.name === KEY) {
-        callback(true);
-        window.name = ""; // Clean up
-      } else {
-        window.name = KEY;
-        location.reload();
-      }
+    if (!selectFx.includes("<a>") && selectFx.includes("aaabbbccc")) {
+      return "Firefox";
     }
+    if (selectCh.includes("<keygen>") && !selectCh.includes("</keygen>")) {
+      // Check Privacy Sandbox behavior to distinguish Chrome vs Edge
+      if (typeof navigator.deprecatedRunAdAuctionEnforcesKAnonymity === "boolean") {
+        return navigator.deprecatedRunAdAuctionEnforcesKAnonymity ? "Chrome" : "Edge";
+      }
+      return "Chrome"; // default fallback
+    }
+    return "Unknown";
+  }
 
-    const browser = detectBrowserBySanitization();
-    document.getElementById("browser-name").textContent = `You are using ${browser}`;
+  function testWindowNamePersistence(callback) {
+    const KEY = "__window_name_test__";
+    if (window.name === KEY) {
+      callback(true);
+      window.name = ""; // Clean up
+    } else {
+      window.name = KEY;
+      location.reload();
+    }
+  }
 
-    testWindowNamePersistence((persistent) => {
-      const status = persistent
-        ? "Your browser is vulnerable to window.name persistence."
-        : "Your browser is not vulnerable to window.name persistence.";
-      document.getElementById("window-name-status").textContent = status;
-    });
-  </script>
+  const browser = detectBrowserBySanitization();
+  document.getElementById("browser-name").textContent = `You are using ${browser}`;
+
+  testWindowNamePersistence((persistent) => {
+    const status = persistent
+      ? "Your browser is vulnerable to window.name persistence."
+      : "Your browser is not vulnerable to window.name persistence.";
+    document.getElementById("window-name-status").textContent = status;
+  });
+</script>
 
 
 </body></html>
